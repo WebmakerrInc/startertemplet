@@ -20,29 +20,47 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 		};
 	} );
 
-	const { active_plan, plan_data } = aiBuilderVars?.zip_plans;
+	const planDetails = 'object' === typeof aiBuilderVars?.zip_plans ? aiBuilderVars.zip_plans : {};
+	const active_plan = planDetails?.active_plan ?? {};
+	const plan_data = planDetails?.plan_data;
 
-	if ( typeof plan_data !== 'object' ) {
+	if ( ! plan_data || 'object' !== typeof plan_data ) {
 		return null;
 	}
 
 	const {
-		limit: {
-			all_sites_count,
-			ai_sites_count,
-			blueprint_sites_count,
-			disk_space_size,
-			team_members_count,
-		},
-		usage: {
-			all_sites_count: all_sites_count_used,
-			ai_sites_count: ai_sites_count_used,
-			blueprint_sites_count: blueprint_sites_count_used,
-			disk_space_size: disk_space_size_used,
-			team_members_count: team_members_count_used,
-		},
-		features: { can_ai_credits_reset, can_ai_site_reset },
+		limit = {},
+		usage = {},
+		features = {},
 	} = plan_data;
+
+	const {
+		all_sites_count = 0,
+		ai_sites_count = 0,
+		blueprint_sites_count = 0,
+		disk_space_size = 0,
+		team_members_count = 0,
+	} = limit;
+
+	const {
+		all_sites_count: all_sites_count_used = 0,
+		ai_sites_count: ai_sites_count_used = 0,
+		blueprint_sites_count: blueprint_sites_count_used = 0,
+		disk_space_size: disk_space_size_used = 0,
+		team_members_count: team_members_count_used = 0,
+	} = usage;
+
+	const diskSpaceLimitValue =
+		typeof disk_space_size === 'object' && null !== disk_space_size
+			? Number( disk_space_size?.disk_space_size ?? 0 )
+			: Number( disk_space_size ?? 0 );
+	const diskSpaceUsedValue = Number( disk_space_size_used ?? 0 );
+	const formattedDiskSpaceUsed =
+		diskSpaceUsedValue === 0 ? 0 : diskSpaceUsedValue.toFixed( 2 ) || 0;
+	const diskSpacePercent =
+		diskSpaceLimitValue > 0 ? ( diskSpaceUsedValue / diskSpaceLimitValue ) * 100 : 0;
+
+	const { can_ai_credits_reset = '', can_ai_site_reset = '' } = features;
 
 	const handleManageUpgrade = () => {
 		if ( active_plan.name === 'Free' ) {
@@ -122,10 +140,7 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 				<div className="my-5 p-5 border rounded border-app-border ">
 					<div className="flex justify-between items-center">
 						<div className="text-app-heading zw-base-semibold capitalize">
-							{ `${ active_plan.name } ${ __(
-								'Plan',
-								'ai-builder'
-							) }` }
+							{ `${ active_plan.name } ${ __( 'Plan', 'ai-builder' ) }` }
 						</div>
 						<Button
 							variant="white"
@@ -144,10 +159,7 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 							limit={ all_sites_count }
 						/>
 						<PlanMetric
-							title={ __(
-								'AI Website Generations',
-								'ai-builder'
-							) }
+							title={ __( 'AI Website Generations', 'ai-builder' ) }
 							value={ ai_sites_count_used }
 							limit={ ai_sites_count }
 							tooltipText={ aiSiteTooltipText }
@@ -159,15 +171,9 @@ const PlanInformationModal = ( { onOpenChange } ) => {
 						/>
 						<PlanMetric
 							title={ __( 'Disk Space Utilized', 'ai-builder' ) }
-							value={
-								disk_space_size_used === 0
-									? 0
-									: disk_space_size_used.toFixed( 2 ) || 0
-							}
-							limit={ disk_space_size?.disk_space_size }
-							percent={
-								( disk_space_size_used / disk_space_size ) * 100
-							}
+							value={ formattedDiskSpaceUsed }
+							limit={ diskSpaceLimitValue }
+							percent={ diskSpacePercent }
 							unit="GB"
 						/>
 						<PlanMetric
