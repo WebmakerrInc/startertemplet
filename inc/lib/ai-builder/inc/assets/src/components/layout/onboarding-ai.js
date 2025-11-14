@@ -220,10 +220,8 @@ const OnboardingAI = () => {
 		};
 	} );
 
-	const {
-		zip_plans: { active_plan },
-		show_zip_plan,
-	} = aiBuilderVars;
+        const active_plan = aiBuilderVars?.zip_plans?.active_plan ?? {};
+        const { show_zip_plan } = aiBuilderVars ?? {};
 
 	const renderStepContent = ( stepIdx, currStep, stepNumber ) => {
 		if ( currStep === stepIdx ) {

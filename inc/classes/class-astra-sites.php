@@ -1783,10 +1783,46 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 
 			$favorite_data = get_option( 'astra-sites-favorites' );
 
-			$license_status = false;
-			if ( is_callable( 'BSF_License_Manager::bsf_is_active_license' ) ) {
-				$license_status = BSF_License_Manager::bsf_is_active_license( 'astra-pro-sites' );
-			}
+                        $license_status = false;
+                        if ( is_callable( 'BSF_License_Manager::bsf_is_active_license' ) ) {
+                                $license_status = BSF_License_Manager::bsf_is_active_license( 'astra-pro-sites' );
+                        }
+
+                        if ( ! $license_status ) {
+                                $plan_details = Astra_Sites_ZipWP_Integration::get_instance()->get_zip_plans();
+
+                                if ( is_array( $plan_details ) && isset( $plan_details['data']['active_plan']['slug'] ) ) {
+                                        $active_plan_slug = strtolower( (string) $plan_details['data']['active_plan']['slug'] );
+
+                                        if ( '' !== $active_plan_slug && 'free' !== $active_plan_slug ) {
+                                                $license_status = true;
+                                        }
+                                }
+                        }
+
+                        $plan_details = null;
+
+                        if ( ! $license_status ) {
+                                $plan_details = Astra_Sites_ZipWP_Integration::get_instance()->get_zip_plans();
+
+                                if ( is_array( $plan_details ) && isset( $plan_details['data']['active_plan']['slug'] ) ) {
+                                        $active_plan_slug = strtolower( (string) $plan_details['data']['active_plan']['slug'] );
+
+                                        if ( '' !== $active_plan_slug && 'free' !== $active_plan_slug ) {
+                                                $license_status = true;
+                                        }
+                                }
+                        }
+
+                        $plans = is_array( $plan_details ) ? $plan_details : Astra_Sites_ZipWP_Integration::get_instance()->get_zip_plans();
+
+                        if ( ! $license_status && is_array( $plans ) && isset( $plans['data']['active_plan']['slug'] ) ) {
+                                $active_plan_slug = strtolower( (string) $plans['data']['active_plan']['slug'] );
+
+                                if ( '' !== $active_plan_slug && 'free' !== $active_plan_slug ) {
+                                        $license_status = true;
+                                }
+                        }
 
 			$spectra_theme = 'not-installed';
 			// Theme installed and activate.
@@ -1816,7 +1852,19 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 				$surecart_store_exist = \SureCart\Models\ApiToken::get();
 			}
 
-			$plans = Astra_Sites_ZipWP_Integration::get_instance()->get_zip_plans();
+                        $plans_data = array();
+
+                        if ( is_array( $plans ) && isset( $plans['data'] ) && is_array( $plans['data'] ) ) {
+                                $plans_data = $plans['data'];
+
+                                if ( ! $license_status && isset( $plans_data['active_plan']['slug'] ) ) {
+                                        $active_plan_slug = strtolower( (string) $plans_data['active_plan']['slug'] );
+
+                                        if ( '' !== $active_plan_slug && 'free' !== $active_plan_slug ) {
+                                                $license_status = true;
+                                        }
+                                }
+                        }
 
 			$data = apply_filters(
 				'astra_sites_localize_vars',
@@ -1918,7 +1966,7 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 					'page_color_palette'      => $this->get_page_palette_colors(),
 					'rest_api_nonce' => ( current_user_can( 'manage_options' ) ) ? wp_create_nonce( 'wp_rest' ) : '',
                                        'zip_token_exists' => true,
-                                       'zip_plans' => ( $plans && isset( $plans['data'] ) ) ? $plans['data'] : array(),
+                                       'zip_plans'        => $plans_data,
 					'dashboard_url' => admin_url(),
 					'finish_setup_url' => admin_url( 'admin.php?page=getting-started' ),
 					'placeholder_images' => Helper::get_image_placeholders(),
@@ -2308,12 +2356,24 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			wp_enqueue_script( 'astra-sites-elementor-admin-page', ASTRA_SITES_URI . 'inc/assets/js/elementor-admin-page.js', array( 'jquery', 'wp-util', 'updates', 'masonry', 'imagesloaded' ), ASTRA_SITES_VER, true );
 			wp_add_inline_script( 'astra-sites-elementor-admin-page', sprintf( 'var pagenow = "%s";', ASTRA_SITES_NAME ), 'after' );
 			wp_enqueue_style( 'astra-sites-admin', ASTRA_SITES_URI . 'inc/assets/css/admin.css', ASTRA_SITES_VER, true );
-			wp_style_add_data( 'astra-sites-admin', 'rtl', 'replace' );
+                       wp_style_add_data( 'astra-sites-admin', 'rtl', 'replace' );
 
-			$license_status = false;
-			if ( is_callable( 'BSF_License_Manager::bsf_is_active_license' ) ) {
-				$license_status = BSF_License_Manager::bsf_is_active_license( 'astra-pro-sites' );
-			}
+                       $license_status = false;
+                       if ( is_callable( 'BSF_License_Manager::bsf_is_active_license' ) ) {
+                               $license_status = BSF_License_Manager::bsf_is_active_license( 'astra-pro-sites' );
+                       }
+
+                       if ( ! $license_status ) {
+                               $plan_details = Astra_Sites_ZipWP_Integration::get_instance()->get_zip_plans();
+
+                               if ( is_array( $plan_details ) && isset( $plan_details['data']['active_plan']['slug'] ) ) {
+                                       $active_plan_slug = strtolower( (string) $plan_details['data']['active_plan']['slug'] );
+
+                                       if ( '' !== $active_plan_slug && 'free' !== $active_plan_slug ) {
+                                               $license_status = true;
+                                       }
+                               }
+                       }
 
 			/* translators: %s are link. */
 			$license_msg = sprintf( __( 'This is a premium template available with Essential and Business Toolkits. you can purchase it from <a href="%s" target="_blank">here</a>.', 'astra-sites' ), 'https://wpastra.com/starter-templates-plans/' );

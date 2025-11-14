@@ -15,10 +15,9 @@ import {
 } from '../utils/helpers';
 import { WEEKS_IN_SECONDS } from '../utils/constants';
 
-const {
-	zip_plans: { active_plan, plan_data },
-	show_zip_plan,
-} = aiBuilderVars;
+const active_plan = aiBuilderVars?.zip_plans?.active_plan ?? {};
+const plan_data = aiBuilderVars?.zip_plans?.plan_data ?? {};
+const { show_zip_plan } = aiBuilderVars ?? {};
 
 const PlanUpgradePromoModal = () => {
 	const [ features, setFeatures ] = useState( [] );
