@@ -426,18 +426,26 @@ export const isValidImageURL = ( fileURL ) => {
 	return true;
 };
 
-const { plan_data } = aiBuilderVars?.zip_plans;
+const { plan_data } = aiBuilderVars?.zip_plans ?? {};
 
 export const showAISitesNotice = () => {
+	if ( ! plan_data || 'object' !== typeof plan_data ) {
+		return false;
+	}
+
 	// if only 1 AI Site is remaining
 	if ( plan_data?.remaining?.ai_sites_count === 1 ) {
 		return true;
 	}
 
-	const usagePercentage =
-		( plan_data?.usage?.ai_sites_count /
-			plan_data?.limit?.ai_sites_count ) *
-		100;
+	const totalAiSites = Number( plan_data?.limit?.ai_sites_count ?? 0 );
+	const usedAiSites = Number( plan_data?.usage?.ai_sites_count ?? 0 );
+
+	if ( totalAiSites <= 0 ) {
+		return false;
+	}
+
+	const usagePercentage = ( usedAiSites / totalAiSites ) * 100;
 
 	if ( usagePercentage >= 60 ) {
 		return true;
