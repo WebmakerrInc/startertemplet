@@ -745,45 +745,26 @@ class Ai_Builder_ZipWP_Api {
 	 *
 	 * @return array<string, mixed>
 	 */
-	public function get_zip_plans() {
-		$api_endpoint = $this->get_api_domain( false ) . '/plan/current-plan';
-
-		$request_args = array(
-			'headers'   => $this->get_api_headers(),
-			'timeout'   => 100,
-			'sslverify' => false,
-		);
-		$response     = wp_safe_remote_get( $api_endpoint, $request_args );
-
-		if ( is_wp_error( $response ) ) {
-			// There was an error in the request.
-			return array(
-				/* translators: %s is the error message */
-				'data'   => sprintf( __( 'Failed %s', 'astra-sites' ), $response->get_error_message() ),
-				'status' => false,
-			);
-		}
-			$response_code = wp_remote_retrieve_response_code( $response );
-			$response_body = wp_remote_retrieve_body( $response );
-		if ( 200 === $response_code ) {
-			$response_data = json_decode( $response_body, true );
-			if ( $response_data ) {
-				return array(
-					'data'   => $response_data,
-					'status' => true,
-				);
-			}
-				return array(
-					'data'   => $response_data,
-					'status' => false,
-				);
-
-		}
-				return array(
-					'data'   => 'Failed',
-					'status' => false,
-				);
-	}
+        public function get_zip_plans() {
+                return array(
+                        'status' => true,
+                        'data'   => array(
+                                'active_plan' => array(
+                                        'slug' => 'unlimited',
+                                ),
+                                'plan_data'   => array(
+                                        'remaining' => array(
+                                                'ai_sites_count'       => 999,
+                                                'ai_sites_count_daily' => 999,
+                                        ),
+                                        'limit'     => array(
+                                                'ai_sites_count'       => 999,
+                                                'ai_sites_count_daily' => 999,
+                                        ),
+                                ),
+                        ),
+                );
+        }
 
 	/**
 	 * Create site.

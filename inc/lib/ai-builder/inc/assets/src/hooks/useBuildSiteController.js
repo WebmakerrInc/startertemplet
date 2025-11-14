@@ -45,7 +45,7 @@ const useBuildSiteController = () => {
 		open: false,
 		skipFeature: false,
 	} );
-	const [ premiumModal, setPremiumModal ] = useState( false );
+        const [ premiumModal, setPremiumModal ] = useState( false );
 	const [ prevErrorAlert, setPrevErrorAlert ] = useReducer(
 			( state, action ) => ( {
 				...state,
@@ -81,38 +81,17 @@ const useBuildSiteController = () => {
 				return;
 			}
 
-			if (
-				aiBuilderVars?.zip_plans?.active_plan?.slug === 'free' &&
-				selectedTemplateIsPremium
-			) {
-				setPremiumModal( true );
-				return;
-			}
+                        if ( 'yes' !== aiBuilderVars.firstImportStatus ) {
+                                handleGenerateContent( skipFeature )();
+                                return;
+                        }
 
-			if ( 'yes' !== aiBuilderVars.firstImportStatus ) {
-				handleGenerateContent( skipFeature )();
-				return;
-			}
-
-			setPreBuildModal( {
+                        setPreBuildModal( {
 				open: true,
 				skipFeature,
 			} );
 		};
-	const limitExceeded = () => {
-		const zipPlans = aiBuilderVars?.zip_plans;
-		const sitesRemaining = zipPlans?.plan_data?.remaining;
-		const aiSitesRemainingCount = sitesRemaining?.ai_sites_count;
-
-		if (
-			typeof aiSitesRemainingCount === 'number' &&
-			aiSitesRemainingCount <= 0
-		) {
-			return true;
-		}
-
-		return false;
-	};
+        const limitExceeded = () => false;
 
 	const createSite = async ( {
 		template,
@@ -239,16 +218,9 @@ const useBuildSiteController = () => {
 				return;
 			}
 
-			if ( limitExceeded() ) {
-				setLimitExceedModal( {
-					open: true,
-				} );
-				return;
-			}
-
-			const enabledFeatures = siteFeatures
-				.filter( ( feature ) =>
-					skip ? feature.compulsory : feature.enabled
+                        const enabledFeatures = siteFeatures
+                                .filter( ( feature ) =>
+                                        skip ? feature.compulsory : feature.enabled
 				)
 				.map( ( feature ) => feature.id );
 
