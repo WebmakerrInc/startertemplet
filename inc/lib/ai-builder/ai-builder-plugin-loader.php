@@ -294,6 +294,7 @@ class Ai_Builder_Plugin_Loader {
                );
 
                wp_add_inline_script( 'ai-builder', $this->get_create_root_polyfill(), 'before' );
+               wp_add_inline_script( 'ai-builder', $this->get_runtime_bootstrap_script(), 'before' );
 
                wp_enqueue_script( 'ai-builder' );
 		wp_enqueue_style( 'ai-builder', AI_BUILDER_URL . 'inc/assets/build/style-main.css', [], $assets['version'] );
@@ -370,6 +371,17 @@ class Ai_Builder_Plugin_Loader {
         */
        private function get_create_root_polyfill() {
                return "(function(){if('undefined'===typeof window){return;}var maybePolyfill=function(target){if(!target||'function'===typeof target.createRoot||'function'!==typeof target.render){return;}target.createRoot=function(container){return{render:function(element){target.render(element,container);},unmount:function(){if('function'===typeof target.unmountComponentAtNode){target.unmountComponentAtNode(container);}}};};};maybePolyfill(window.wp&&window.wp.element);if('undefined'!==typeof window.ReactDOM){maybePolyfill(window.ReactDOM);}})();";
+       }
+
+       /**
+        * Provide runtime fallbacks for global variables expected by the onboarding app.
+        *
+        * @since 1.2.62
+        *
+        * @return string
+        */
+       private function get_runtime_bootstrap_script() {
+               return "(function(){if('undefined'===typeof window){return;}window.aiBuilderVars=window.aiBuilderVars||{};if('object'!==typeof window.aiBuilderVars.zip_plans||null===window.aiBuilderVars.zip_plans){window.aiBuilderVars.zip_plans={};}if('object'!==typeof window.aiBuilderVars.zip_plans.active_plan||null===window.aiBuilderVars.zip_plans.active_plan){window.aiBuilderVars.zip_plans.active_plan={};}if('object'!==typeof window.aiBuilderVars.zip_plans.plan_data||null===window.aiBuilderVars.zip_plans.plan_data){window.aiBuilderVars.zip_plans.plan_data={};}})();";
        }
 
        /**
