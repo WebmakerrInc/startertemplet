@@ -178,13 +178,15 @@ class Intelligent_Starter_Templates_Loader {
 			return;
 		}
 
-		wp_register_script(
-			'starter-templates-onboarding',
-			INTELLIGENT_TEMPLATES_URI . 'assets/dist/onboarding/main.js',
-			array_merge( $asset['dependencies'], array('updates') ),
-			$asset['version'],
-			true
-		);
+               wp_register_script(
+                       'starter-templates-onboarding',
+                       INTELLIGENT_TEMPLATES_URI . 'assets/dist/onboarding/main.js',
+                       array_merge( $asset['dependencies'], array('updates') ),
+                       $asset['version'],
+                       true
+               );
+
+               wp_add_inline_script( 'starter-templates-onboarding', $this->get_create_root_polyfill_script(), 'before' );
 
 		$partner_id = apply_filters( 'zipwp_partner_url_param', '' );
 		$zipwp_auth = array(
@@ -312,14 +314,25 @@ class Intelligent_Starter_Templates_Loader {
 			'subset' => rawurlencode( 'latin,latin-ext' ),
 		);
 
-		$fonts_url = add_query_arg( $query_args, '//fonts.googleapis.com/css' );
+               $fonts_url = add_query_arg( $query_args, '//fonts.googleapis.com/css' );
 
-		return $fonts_url;
-	}
+               return $fonts_url;
+       }
 
-	/**
-	 * Register page builder templates flag.
-	 *
+       /**
+        * Polyfill script for React 18 createRoot on older WordPress versions.
+        *
+        * @since 4.4.42
+        *
+        * @return string
+        */
+       private function get_create_root_polyfill_script() {
+               return "(function(){if('undefined'===typeof window){return;}var maybePolyfill=function(target){if(!target||'function'===typeof target.createRoot||'function'!==typeof target.render){return;}target.createRoot=function(container){return{render:function(element){target.render(element,container);},unmount:function(){if('function'===typeof target.unmountComponentAtNode){target.unmountComponentAtNode(container);}}};};};maybePolyfill(window.wp&&window.wp.element);if('undefined'!==typeof window.ReactDOM){maybePolyfill(window.ReactDOM);}})();";
+       }
+
+       /**
+        * Register page builder templates flag.
+        *
 	 * @return void
 	 */
 	public function page_builder_field() {
