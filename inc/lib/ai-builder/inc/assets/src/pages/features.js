@@ -29,7 +29,6 @@ import Heading from '../components/heading';
 import Dropdown from '../components/dropdown';
 import AISitesNotice from '../components/ai-sites-notice';
 import { WooCommerceIcon, SureCartIcon } from '../ui/icons';
-import CreditConfirmModal from '../components/CreditConfirmModal';
 import { getFeaturePluginList } from '../utils/import-site/import-utils';
 import RequiredPlugins from '../components/RequiredPlugins';
 
@@ -156,10 +155,7 @@ const ICON_SET = {
 const Features = ( { handleClickStartBuilding, isInProgress } ) => {
 	const { previousStep } = useNavigateSteps();
 	const disabledFeatures = aiBuilderVars?.hide_site_features;
-	const { setSiteFeatures, storeSiteFeatures } = useDispatch( STORE_KEY );
-	const { setSignupLoginModal } = useDispatch( STORE_KEY );
-
-	const authenticated = aiBuilderVars?.zip_token_exists;
+    const { setSiteFeatures, storeSiteFeatures } = useDispatch( STORE_KEY );
 
 	const { siteFeatures, loadingNextStep } = useSelect( ( select ) => {
 		const { getSiteFeatures, getLoadingNextStep } = select( STORE_KEY );
@@ -264,42 +260,10 @@ const Features = ( { handleClickStartBuilding, isInProgress } ) => {
 			: [];
 	}, [ siteFeatures, disabledFeatures, isFetchingStatus ] );
 
-	const handleClickNext = ( { skipFeature = false } ) => {
-		if ( ! authenticated ) {
-			setSignupLoginModal( {
-				open: true,
-				type: 'register',
-				ask: 'register',
-				shouldResume: true,
-				isPremiumTemplate: selectedTemplateIsPremium,
-			} );
-			return;
-		}
-
-		// get the start building function from the parent component
-		const startBuilding = handleClickStartBuilding( skipFeature );
-
-		if ( aiBuilderVars?.hideCreditsWarningModal ) {
-			startBuilding();
-			return;
-		}
-
-		const isPlanEligibleForConfirmation = [ 'free', 'hobby' ].includes(
-			aiBuilderVars?.zip_plans?.active_plan?.slug
-		);
-
-		const hasRemainingCredits =
-			aiBuilderVars?.zip_plans?.plan_data?.remaining?.ai_sites_count > 0;
-
-		if ( isPlanEligibleForConfirmation && hasRemainingCredits ) {
-			CreditConfirmModal.show( {
-				onConfirm: startBuilding,
-			} );
-		} else {
-			// user doesn't have sufficient credits or confirmation modal is not needed, startBuilding will show upgrade modal if needed
-			startBuilding();
-		}
-	};
+    const handleClickNext = ( { skipFeature = false } ) => {
+        const startBuilding = handleClickStartBuilding( skipFeature );
+        startBuilding();
+    };
 
 	const featurePluginsList = useMemo( () => {
 		const enabledFeatureIds =

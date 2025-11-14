@@ -136,44 +136,24 @@ class Astra_Sites_ZipWP_Integration {
 	 * @return array<string, mixed>
      */
     public function get_zip_plans() {
-        $api_endpoint = Astra_Sites_ZipWP_Api::get_instance()->get_api_domain() . '/plan/current-plan';
-
-		$request_args = array(
-			'headers' => Astra_Sites_ZipWP_Api::get_instance()->get_api_headers(),
-			'timeout' => 100,
-            'sslverify' => false,
-		);
-		$response = wp_safe_remote_get( $api_endpoint, $request_args );
-
-		if ( is_wp_error( $response ) ) {
-			// There was an error in the request.
-			return array(
-                'data' => 'Failed ' . $response->get_error_message(),
-                'status'  => false,
-            );
-		} else {
-			$response_code = wp_remote_retrieve_response_code( $response );
-			$response_body = wp_remote_retrieve_body( $response );
-			if ( 200 === $response_code ) {
-				$response_data = json_decode( $response_body, true );
-				if ( $response_data ) {
-                    return array(
-                        'data' => $response_data,
-                        'status'  => true,
-                    );
-				} else {
-					return array(
-                        'data' => $response_data,
-                        'status'  => false,
-                    );
-				}
-			} else {
-				return array(
-                    'data' => 'Failed',
-                    'status'  => false,
-                );
-			}
-		}
+        return array(
+            'status' => true,
+            'data'   => array(
+                'active_plan' => array(
+                    'slug' => 'unlimited',
+                ),
+                'plan_data'   => array(
+                    'remaining' => array(
+                        'ai_sites_count'        => 999,
+                        'ai_sites_count_daily'  => 999,
+                    ),
+                    'limit'     => array(
+                        'ai_sites_count'        => 999,
+                        'ai_sites_count_daily'  => 999,
+                    ),
+                ),
+            ),
+        );
     }
 }
 
