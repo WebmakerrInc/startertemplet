@@ -419,10 +419,16 @@ class Ai_Builder_Plugin_Loader {
 	public function get_localize_variable() {
 		$theme_status = class_exists( 'STImporter\Importer\ST_Importer_Helper' ) ? ST_Importer_Helper::get_instance()->get_theme_status() : '';
 
-		$plans = Ai_Builder_ZipWP_Api::Instance()->get_zip_plans();
+               $plans = Ai_Builder_ZipWP_Api::Instance()->get_zip_plans();
 
-		$team_name    = is_array( $plans['data'] ) && isset( $plans['data']['team']['name'] ) ? $plans['data']['team']['name'] : '';
-		$plan_name    = is_array( $plans['data'] ) && isset( $plans['data']['active_plan']['slug'] ) ? $plans['data']['active_plan']['slug'] : '';
+               if ( is_wp_error( $plans ) || ! is_array( $plans ) ) {
+                       $plans = array();
+               }
+
+               $plans_data = isset( $plans['data'] ) && is_array( $plans['data'] ) ? $plans['data'] : array();
+
+               $team_name = isset( $plans_data['team']['name'] ) ? $plans_data['team']['name'] : '';
+               $plan_name = isset( $plans_data['active_plan']['slug'] ) ? $plans_data['active_plan']['slug'] : '';
 		$support_link = 'https://wpastra.com/starter-templates-support/?ip=' . $this->get_client_ip();
 
 		return array(
@@ -446,7 +452,7 @@ class Ai_Builder_Plugin_Loader {
 			'installing'               => __( 'Installing...', 'astra-sites' ),
 			'logoUrlDark'              => apply_filters( 'st_ai_onboarding_logo_dark', AI_BUILDER_URL . 'inc/assets/images/build-with-ai/st-logo-dark.svg' ),
 			'logoUrlLight'             => apply_filters( 'st_ai_onboarding_logo_light', AI_BUILDER_URL . 'inc/assets/images/logo.svg' ),
-			'zip_plans'                => $plans && isset( $plans['data'] ) ? $plans['data'] : array(),
+                       'zip_plans'                => $plans_data,
 			'dashboard_url'            => admin_url(),
 			'migrateSvg'               => apply_filters( 'ai_builder_migrate_svg', AI_BUILDER_URL . 'inc/assets/images/build-with-ai/migrate.svg' ),
 			'business_details'         => Ai_Builder_ZipWP_Integration::get_business_details(),
