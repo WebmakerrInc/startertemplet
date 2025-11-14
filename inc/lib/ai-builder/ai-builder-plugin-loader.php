@@ -278,24 +278,28 @@ class Ai_Builder_Plugin_Loader {
 		}
 
 		wp_enqueue_media();
-		wp_enqueue_script(
-			'ai-builder',
-			AI_BUILDER_URL . 'inc/assets/build/main.js',
-			array_merge(
-				$assets['dependencies'],
-				array(
-					'react',
-					'react-dom',
-					'updates',
-				)
-			),
-			$assets['version'],
-			true
-		);
+               wp_register_script(
+                       'ai-builder',
+                       AI_BUILDER_URL . 'inc/assets/build/main.js',
+                       array_merge(
+                               $assets['dependencies'],
+                               array(
+                                       'react',
+                                       'react-dom',
+                                       'updates',
+                               )
+                       ),
+                       $assets['version'],
+                       true
+               );
+
+               wp_add_inline_script( 'ai-builder', $this->get_create_root_polyfill(), 'before' );
+
+               wp_enqueue_script( 'ai-builder' );
 		wp_enqueue_style( 'ai-builder', AI_BUILDER_URL . 'inc/assets/build/style-main.css', [], $assets['version'] );
 
 		// Required variables for JS.
-		wp_localize_script( 'ai-builder', 'aiBuilderVars', $this->get_localize_variable() );
+               wp_localize_script( 'ai-builder', 'aiBuilderVars', $this->get_localize_variable() );
 		wp_localize_script(
 			'ai-builder',
 			'wpApiSettings',
@@ -354,12 +358,23 @@ class Ai_Builder_Plugin_Loader {
 			'display' => 'swap',
 		);
 
-		return add_query_arg( $query_args, '//fonts.googleapis.com/css' );
-	}
+               return add_query_arg( $query_args, '//fonts.googleapis.com/css' );
+       }
 
-	/**
-	 * Check if we should report error or not.
-	 * Skipping error reporting for a few hosting providers.
+       /**
+        * Polyfill script for React 18 createRoot on older WordPress versions.
+        *
+        * @since 1.2.61
+        *
+        * @return string
+        */
+       private function get_create_root_polyfill() {
+               return "(function(){if('undefined'===typeof window){return;}var maybePolyfill=function(target){if(!target||'function'===typeof target.createRoot||'function'!==typeof target.render){return;}target.createRoot=function(container){return{render:function(element){target.render(element,container);},unmount:function(){if('function'===typeof target.unmountComponentAtNode){target.unmountComponentAtNode(container);}}};};};maybePolyfill(window.wp&&window.wp.element);if('undefined'!==typeof window.ReactDOM){maybePolyfill(window.ReactDOM);}})();";
+       }
+
+       /**
+        * Check if we should report error or not.
+        * Skipping error reporting for a few hosting providers.
 	 *
 	 * @since 1.0.0
 	 * @return bool
