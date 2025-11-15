@@ -404,14 +404,19 @@ class ST_Importer {
 				'status'  => true,
 				'message' => __( 'Options imported successfully.', 'astra-sites' ),
 			);
-		} catch ( \Exception $e ) {
-			return array(
-				'status' => false,
-				'error'  => $e,
-			);
-		}
+               } catch ( \Exception $e ) {
+                       if ( function_exists( 'astra_sites_error_log' ) ) {
+                               \astra_sites_error_log( 'Import options exception: ' . $e->getMessage() );
+                       }
 
-	}
+                       return array(
+                               'status'     => false,
+                               'error'      => $e->getMessage(),
+                               'error_code' => $e->getCode(),
+                       );
+               }
+
+        }
 
 	/**
 	 * Import Widgets.
