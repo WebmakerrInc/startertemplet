@@ -204,17 +204,46 @@ if ( ! class_exists( 'Api' ) ) {
 				);
 			}
 
-			// Check if plugin is already installed.
-			$plugin_file = $this->get_plugin_file( $plugin_slug );
-			if ( $plugin_file ) {
-				return rest_ensure_response(
-					array(
-						'success'     => true,
-						'message'     => __( 'Plugin is already installed', 'astra-sites' ),
-						'plugin_file' => $plugin_file,
-					)
-				);
-			}
+                        // Check if plugin is already installed.
+                        $plugin_file = $this->get_plugin_file( $plugin_slug );
+                        if ( $plugin_file ) {
+                                return rest_ensure_response(
+                                        array(
+                                                'success'     => true,
+                                                'message'     => __( 'Plugin is already installed', 'astra-sites' ),
+                                                'plugin_file' => $plugin_file,
+                                        )
+                                );
+                        }
+
+                        $skip_requested = false;
+
+                        if ( $request->has_param( 'skip_install' ) ) {
+                                $skip_requested = \rest_sanitize_boolean( $request->get_param( 'skip_install' ) );
+                        } elseif ( $request->has_param( 'skipPluginInstall' ) ) {
+                                $skip_requested = \rest_sanitize_boolean( $request->get_param( 'skipPluginInstall' ) );
+                        }
+
+                        $context = array(
+                                'context' => 'rest',
+                                'request' => $request,
+                        );
+
+                        if ( function_exists( 'astra_sites_should_skip_plugin_installation' ) ) {
+                                $skip_install = \astra_sites_should_skip_plugin_installation( $skip_requested, $plugin_slug, $context );
+                        } else {
+                                $skip_install = $skip_requested || ( defined( 'ASTRA_SITES_SKIP_PLUGIN_INSTALLATION' ) && ASTRA_SITES_SKIP_PLUGIN_INSTALLATION );
+                        }
+
+                        if ( $skip_install ) {
+                                return rest_ensure_response(
+                                        array(
+                                                'success' => true,
+                                                'skipped' => true,
+                                                'message' => sprintf( __( 'Plugin installation skipped for %s.', 'astra-sites' ), $plugin_slug ),
+                                        )
+                                );
+                        }
 
 			// Include necessary WordPress files.
 			if ( ! function_exists( 'plugins_api' ) ) {

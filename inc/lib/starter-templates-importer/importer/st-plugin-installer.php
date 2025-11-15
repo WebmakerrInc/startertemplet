@@ -27,10 +27,26 @@ class ST_Plugin_Installer {
 	 * @return array<string, mixed> Result array with status and message
 	 */
 	public static function install_and_activate_plugin( $plugin_slug, $plugin_file ) {
+		$skip_context = array(
+                        'context'     => 'importer',
+                        'plugin_file' => $plugin_file,
+                );
+
+		$should_skip = function_exists( 'astra_sites_should_skip_plugin_installation' ) ? \astra_sites_should_skip_plugin_installation( false, $plugin_slug, $skip_context ) : ( defined( 'ASTRA_SITES_SKIP_PLUGIN_INSTALLATION' ) && ASTRA_SITES_SKIP_PLUGIN_INSTALLATION );
+
+		if ( $should_skip ) {
+                        return array(
+                                'status'  => true,
+                                'skipped' => true,
+                                // translators: %s is the plugin slug.
+                                'message' => sprintf( __( 'Plugin installation skipped for %s.', 'astra-sites' ), $plugin_slug ),
+                        );
+                }
+
 		// Check user capabilities.
-		if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
-			return array(
-				'status' => false,
+                if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
+                        return array(
+                                'status' => false,
 				'error'  => __( "Permission denied: You don't have sufficient permissions to install or activate plugins. Please contact your site administrator.", 'astra-sites' ),
 			);
 		}

@@ -32,6 +32,37 @@ if ( ! function_exists( 'astra_sites_error_log' ) ) :
 
 endif;
 
+if ( ! function_exists( 'astra_sites_should_skip_plugin_installation' ) ) :
+        /**
+         * Determine whether plugin installation should be skipped.
+         *
+         * @since 4.4.45
+         *
+         * @param bool   $requested_skip Skip flag requested by the caller.
+         * @param string $plugin_slug    Plugin slug.
+         * @param array  $context        Additional contextual data for filters.
+         * @return bool Whether the plugin installation should be skipped.
+         */
+        function astra_sites_should_skip_plugin_installation( $requested_skip, $plugin_slug = '', $context = array() ) {
+                $skip = (bool) $requested_skip;
+
+                if ( ! $skip && defined( 'ASTRA_SITES_SKIP_PLUGIN_INSTALLATION' ) && ASTRA_SITES_SKIP_PLUGIN_INSTALLATION ) {
+                        $skip = true;
+                }
+
+                /**
+                 * Filter to allow skipping plugin installation when importing starter templates.
+                 *
+                 * @since 4.4.45
+                 *
+                 * @param bool   $skip        Whether to skip the plugin installation.
+                 * @param string $plugin_slug Plugin slug.
+                 * @param array  $context     Additional context about the request.
+                 */
+                return (bool) apply_filters( 'astra_sites_skip_plugin_installation', $skip, $plugin_slug, $context );
+        }
+endif;
+
 if ( ! function_exists( 'astra_sites_get_suggestion_link' ) ) :
 	/**
 	 *
