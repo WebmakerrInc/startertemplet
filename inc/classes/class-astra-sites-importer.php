@@ -877,7 +877,17 @@ if ( ! class_exists( 'Astra_Sites_Importer' ) ) {
 				$remote_args['id']                          = $data['id'];
 				$remote_args['astra-site-widgets-data']     = json_decode( $data['astra-site-widgets-data'] );
 				$remote_args['astra-site-customizer-data']  = $data['astra-site-customizer-data'];
-				$remote_args['astra-site-options-data']     = $data['astra-site-options-data'];
+                               $options_data = $data['astra-site-options-data'];
+
+                               if ( is_string( $options_data ) ) {
+                                       $decoded_options = json_decode( $options_data, true );
+
+                                       if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded_options ) ) {
+                                               $options_data = $decoded_options;
+                                       }
+                               }
+
+                               $remote_args['astra-site-options-data']     = $options_data;
 				$remote_args['astra-post-data-mapping']     = $data['astra-post-data-mapping'];
 				$remote_args['astra-site-wxr-path']         = $data['astra-site-wxr-path'];
 				$remote_args['astra-site-wpforms-path']     = $data['astra-site-wpforms-path'];
