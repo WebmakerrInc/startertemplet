@@ -103,9 +103,25 @@ if ( ! class_exists( 'Astra_Sites_Install_Plugin' ) ) :
 					);
 				}
 
-				// Extract plugin information.
-				$plugin_slug = $plugin_data['slug'];
-				$plugin_name = $plugin_data['name'];
+                                // Extract plugin information.
+                                $plugin_slug = $plugin_data['slug'];
+                                $plugin_name = $plugin_data['name'];
+
+                                if ( $this->should_skip_plugin_installation( $plugin_slug, $plugin_name ) ) {
+                                        wp_send_json_success(
+                                                array(
+                                                        'message' => sprintf( __( 'Plugin installation skipped for %s.', 'astra-sites' ), $plugin_name ),
+                                                        'status'  => 'skipped',
+                                                        'skipped' => true,
+                                                        'data'    => array(
+                                                                'plugin' => array(
+                                                                        'slug' => $plugin_slug,
+                                                                        'name' => $plugin_name,
+                                                                ),
+                                                        ),
+                                                )
+                                        );
+                                }
 
 				// Include necessary WordPress files.
 				$this->include_required_files();
@@ -297,11 +313,45 @@ if ( ! class_exists( 'Astra_Sites_Install_Plugin' ) ) :
 		}
 
 		/**
-		 * Include required WordPress files
-		 *
-		 * @return void
-		 */
-		private function include_required_files() {
+		* Determine whether the current request has asked to skip plugin installation.
+		*
+		* @param string $plugin_slug Plugin slug.
+		* @param string $plugin_name Plugin name.
+		* @since 4.4.45
+		* @return bool
+		*/
+		private function should_skip_plugin_installation( $plugin_slug, $plugin_name ) {
+			$skip_requested = false;
+
+			if ( isset( $_POST['skip_install'] ) ) {
+				$skip_requested = wp_validate_boolean( wp_unslash( $_POST['skip_install'] ) );
+			} elseif ( isset( $_POST['skip_plugin_install'] ) ) {
+				$skip_requested = wp_validate_boolean( wp_unslash( $_POST['skip_plugin_install'] ) );
+			}
+
+			$context = array(
+				'context'     => 'ajax',
+				'plugin_name' => $plugin_name,
+				'request'     => $_POST,
+			);
+
+			if ( function_exists( 'astra_sites_should_skip_plugin_installation' ) ) {
+				return astra_sites_should_skip_plugin_installation( $skip_requested, $plugin_slug, $context );
+			}
+
+			if ( ! $skip_requested && defined( 'ASTRA_SITES_SKIP_PLUGIN_INSTALLATION' ) && ASTRA_SITES_SKIP_PLUGIN_INSTALLATION ) {
+				return true;
+			}
+
+			return (bool) $skip_requested;
+		}
+
+                /**
+                 * Include required WordPress files
+                 *
+                 * @return void
+                 */
+                private function include_required_files() {
 			if ( ! function_exists( 'get_plugins' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
