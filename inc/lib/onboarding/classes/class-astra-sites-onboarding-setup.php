@@ -76,13 +76,31 @@ if ( ! class_exists( 'Astra_Sites_Onboarding_Setup' ) ) :
 				wp_send_json_error( __( 'Import failed: The XMLReader PHP extension is missing on your server. Please contact your hosting provider to enable it.', 'astra-sites' ) );
 			}
 
-			$wxr_url = astra_get_site_data( 'astra-site-wxr-path' );
+                        $wxr_url = '';
 
-			// Enhanced WXR URL validation with context
-			if ( empty( $wxr_url ) || 'null' === $wxr_url || '' === trim( $wxr_url ) ) {
-				astra_sites_error_log( 'Missing WXR url' );
-				wp_send_json_error( __( 'Import failed: This template does not include site content (posts, pages, media). You can proceed with design-only import or choose a different template.', 'astra-sites' ) );
-			}
+                        if ( function_exists( 'astra_sites_get_import_data_with_wxr' ) ) {
+                                $import_data = astra_sites_get_import_data_with_wxr();
+                                if ( is_array( $import_data ) && isset( $import_data['astra-site-wxr-path'] ) ) {
+                                        if ( function_exists( 'astra_sites_normalize_wxr_url' ) ) {
+                                                $wxr_url = astra_sites_normalize_wxr_url( $import_data['astra-site-wxr-path'] );
+                                        } else {
+                                                $wxr_url = $import_data['astra-site-wxr-path'];
+                                        }
+                                }
+                        }
+
+                        if ( '' === $wxr_url ) {
+                                $wxr_url = astra_get_site_data( 'astra-site-wxr-path' );
+                                if ( function_exists( 'astra_sites_normalize_wxr_url' ) ) {
+                                        $wxr_url = astra_sites_normalize_wxr_url( $wxr_url );
+                                }
+                        }
+
+                        // Enhanced WXR URL validation with context
+                        if ( empty( $wxr_url ) || 'null' === $wxr_url || '' === trim( $wxr_url ) ) {
+                                astra_sites_error_log( 'Missing WXR url' );
+                                wp_send_json_error( __( 'Import failed: This template does not include site content (posts, pages, media). You can proceed with design-only import or choose a different template.', 'astra-sites' ) );
+                        }
 
 			$result = array(
 				'status' => false,

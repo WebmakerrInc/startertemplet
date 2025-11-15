@@ -928,11 +928,19 @@ if ( ! class_exists( 'Astra_Sites' ) ) :
 			$code      = (int) wp_remote_retrieve_response_code( $request );
 			$demo_data = json_decode( wp_remote_retrieve_body( $request ), true );
 
-			if ( 200 === $code ) {
-				Astra_Sites_File_System::get_instance()->update_json_file( 'astra_sites_import_data.json', $demo_data );
-				update_option( 'astra_sites_current_import_template_type', 'classic' );
-				wp_send_json_success( $demo_data );
-			}
+                        if ( 200 === $code ) {
+
+                                if ( function_exists( 'astra_sites_populate_wxr_path' ) ) {
+                                        $populated_data = astra_sites_populate_wxr_path( $demo_data );
+                                        if ( is_array( $populated_data ) && isset( $populated_data[0] ) && is_array( $populated_data[0] ) ) {
+                                                $demo_data = $populated_data[0];
+                                        }
+                                }
+
+                                Astra_Sites_File_System::get_instance()->update_json_file( 'astra_sites_import_data.json', $demo_data );
+                                update_option( 'astra_sites_current_import_template_type', 'classic' );
+                                wp_send_json_success( $demo_data );
+                        }
 
 			$message       = wp_remote_retrieve_body( $request );
 			$response_code = $code;
